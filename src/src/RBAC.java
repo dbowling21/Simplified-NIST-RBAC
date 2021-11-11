@@ -8,14 +8,13 @@ public class RBAC {
     public static ArrayList<String> asc = new ArrayList<String>(); //ascendants
     public static ArrayList<String> des = new ArrayList<String>(); //descendents
     public static ArrayList<String> roles = new ArrayList<String>(); //descendents
-    //public static String[][] ROM;
+    public static String[][] ROM;
     public static int cols;
     public static int rows;
 
     public static void main(String[] args) throws IOException {
         ArrayList<String> temp = new ArrayList<String>();
         ArrayList<String> sortedDes = new ArrayList<String>();
-        String[][] ROM;
         confirm_LRH();
         //putting des into a hashset removes duplicates
         HashSet rmDupes = new HashSet();
@@ -37,8 +36,8 @@ public class RBAC {
         rmDupes.addAll(asc);
         roles.addAll(rmDupes);
         roles = roleSort(roles);
-        ROM = roleObjectMatrix();
-        addPermissions(ROM);
+        roleObjectMatrix();
+        addPermissions();
 
     }
 
@@ -84,7 +83,7 @@ public class RBAC {
 
     }
 
-    public static String[][] roleObjectMatrix() throws IOException {
+    public static void roleObjectMatrix() throws IOException {
         ArrayList<String> resObj = new ArrayList<String>();
         HashSet duplicates = new HashSet();
         Scanner advance = new Scanner(System.in);
@@ -117,7 +116,7 @@ public class RBAC {
         resObj.addAll(0, roles);
         rows = roles.size() + 1;
         cols = resObj.size() + 1;
-        String[][] ROM = new String[rows][cols];
+        ROM = new String[rows][cols];
         for (int i = 0; i < rows; i++) {
             if (i >= 1){
                 ROM[i][0] = roles.get(i-1);
@@ -133,16 +132,15 @@ public class RBAC {
         }
         System.out.println("\n");
         printMatrix(ROM);
-        return ROM;
     }
 
-    public static void addPermissions(String[][] ROM) throws IOException {
+    public static void addPermissions() throws IOException {
         String divide;
         String role;
         String object;
         String permission;
-        int rowIndex = 0;
-        int colIndex = 0;
+        int row;
+        int col;
 
         input = new BufferedReader(new FileReader("permissionsToRoles.txt"));
         while((divide = input.readLine()) != null){
@@ -151,24 +149,16 @@ public class RBAC {
             permission = (divide.split("\t")[1]);
             object = (divide.split("\t")[2]);
             //find row and col index of the permission
-            for (int i = 0; i < rows; i++) {
-                if (role.equals(ROM[i][0])){
-                    rowIndex = i;
-                }
-            }
-            for (int j = 0; j < cols; j++) {
-                if (object.equals(ROM[0][j])){
-                    colIndex = j;
-                }
-            }
+            row = rowIndex(role);
+            col = colIndex(object);
             //Prevents adding a permission if the object already has it but adds
             //the permission to any others the object already has
 
-            if (ROM[rowIndex][colIndex] != null && !ROM[rowIndex][colIndex].equals(permission)){
-                    ROM[rowIndex][colIndex] = ROM[rowIndex][colIndex] + "\t" + permission;
+            if (ROM[row][col] != null && !ROM[row][col].equals(permission)){
+                ROM[row][col] = ROM[row][col] + "\t" + permission;
             }
-            else if(ROM[rowIndex][colIndex] == null ){
-                ROM[rowIndex][colIndex] = permission;
+            else if(ROM[row][col] == null ){
+                ROM[row][col] = permission;
             }
         }
         input.close();
@@ -176,7 +166,7 @@ public class RBAC {
 
     }
 
-   /* public static int rowIndex(String title, String[][] ROM){
+    public static int rowIndex(String title){
         int rowIndex = 0;
         for (int i = 0; i < rows; i++) {
             if (title.equals(ROM[i][0])){
@@ -185,7 +175,7 @@ public class RBAC {
         }
         return rowIndex;
     }
-    public static int colIndex(String title, String[][] ROM){
+    public static int colIndex(String title){
         int colIndex = 0;
         for (int i = 0; i < cols; i++) {
             if (title.equals(ROM[0][i])){
@@ -193,7 +183,7 @@ public class RBAC {
             }
         }
         return colIndex;
-    } */
+    }
 
     public static void inherit(String ascendantRole){
         int index = 0;
@@ -243,7 +233,13 @@ public class RBAC {
                     //a blank row is added with permission j in its correct column for each object
                     for (int k = 0; k < fullCols.size(); k++) {
                         colRights = fullCols.get(k);
-                        if (colRights.get(j) != null){
+                        try {
+                            if (colRights.get(j) != null){
+                                row[colIndex.get(k)] = colRights.get(j);
+                            }
+                        }
+                        catch (Exception e){
+                            colRights.add(null);
                             row[colIndex.get(k)] = colRights.get(j);
                         }
                     }
