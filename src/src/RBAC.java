@@ -8,15 +8,14 @@ public class RBAC {
     public static ArrayList<String> asc = new ArrayList<String>(); //ascendants
     public static ArrayList<String> des = new ArrayList<String>(); //descendents
     public static ArrayList<String> roles = new ArrayList<String>(); //descendents
+    //public static String[][] ROM;
     public static int cols;
     public static int rows;
-    public static int maxColWidth = 0;
 
     public static void main(String[] args) throws IOException {
         ArrayList<String> temp = new ArrayList<String>();
         ArrayList<String> sortedDes = new ArrayList<String>();
         String[][] ROM;
-
         confirm_LRH();
         //putting des into a hashset removes duplicates
         HashSet rmDupes = new HashSet();
@@ -131,7 +130,6 @@ public class RBAC {
                     }
                 }
             }
-
         }
         System.out.println("\n");
         printMatrix(ROM);
@@ -148,9 +146,11 @@ public class RBAC {
 
         input = new BufferedReader(new FileReader("permissionsToRoles.txt"));
         while((divide = input.readLine()) != null){
+            //split the input file
             role = (divide.split("\t")[0]);
             permission = (divide.split("\t")[1]);
             object = (divide.split("\t")[2]);
+            //find row and col index of the permission
             for (int i = 0; i < rows; i++) {
                 if (role.equals(ROM[i][0])){
                     rowIndex = i;
@@ -161,14 +161,54 @@ public class RBAC {
                     colIndex = j;
                 }
             }
-            ROM[rowIndex][colIndex] = permission + "\twrite*" + "\tread";
-            if(permission.length() > maxColWidth){
-                maxColWidth = permission.length();
+            //Prevents adding a permission if the object already has it but adds
+            //the permission to any others the object already has
+
+            if (ROM[rowIndex][colIndex] != null && !ROM[rowIndex][colIndex].equals(permission)){
+                    ROM[rowIndex][colIndex] = ROM[rowIndex][colIndex] + "\t" + permission;
+            }
+            else if(ROM[rowIndex][colIndex] == null ){
+                ROM[rowIndex][colIndex] = permission;
             }
         }
         input.close();
-
         printMatrix(ROM);
+
+    }
+
+   /* public static int rowIndex(String title, String[][] ROM){
+        int rowIndex = 0;
+        for (int i = 0; i < rows; i++) {
+            if (title.equals(ROM[i][0])){
+                rowIndex = i;
+            }
+        }
+        return rowIndex;
+    }
+    public static int colIndex(String title, String[][] ROM){
+        int colIndex = 0;
+        for (int i = 0; i < cols; i++) {
+            if (title.equals(ROM[0][i])){
+                colIndex = i;
+            }
+        }
+        return colIndex;
+    } */
+
+    public static void inherit(String ascendantRole){
+        int index = 0;
+        if (!asc.contains(ascendantRole)){
+            System.out.println("~~~~~~~ NOT AN ASCENDANT ~~~~~~~");
+            return;
+        }
+        for (int i = 0; i < asc.size(); i++) {
+            if (asc.get(i).equals(ascendantRole)){
+                index = i;
+            }
+        }
+
+
+        inherit(des.get(index));
 
     }
 
@@ -225,6 +265,8 @@ public class RBAC {
                 mostRights = 0;
                 colIndex.clear();
                 fullCols.clear();
+                Arrays.fill(row, null);
+                row[0] = addSpaces(5);
                 System.out.println();
             }
             for (int j = 0; j < cols; j++) {
