@@ -187,21 +187,20 @@ public class RBAC {
 
     public static void printMatrix(String matrix[][])
     {
-        int size;
-        //int colIndex = 0;
-        String padding = "";
-        String divide;
-        int mostRights = 0;
-        ArrayList<String> colRights = new ArrayList<>();
-        ArrayList<Integer> colIndex = new ArrayList<>();
         List<ArrayList<String>> fullCols= new ArrayList<>();
+        ArrayList<Integer> colIndex = new ArrayList<>();
+        ArrayList<String> colRights;
         String[] row = new String[cols];
+        int mostRights = 0;
+        int size;
 
-        matrix[0][0] = "  ";
+        matrix[0][0] = "  "; //pads corner cell
         row[0] = addSpaces(5);
         for (int i = 0; i < rows; i++) {
-            if(!fullCols.isEmpty()){
-                for (int j = 1; j < mostRights; j++) {
+            if(!fullCols.isEmpty()){//means there is one or more objects with multiple permissions
+                for (int j = 1; j < mostRights; j++) { //makes sure all permissions are displayed
+                    //if there are multiple objects in a row that both have multiple permissions
+                    //a blank row is added with permission j in its correct column for each object
                     for (int k = 0; k < fullCols.size(); k++) {
                         colRights = fullCols.get(k);
                         if (colRights.get(j) != null){
@@ -209,7 +208,9 @@ public class RBAC {
                         }
                     }
                     if (j > 1) System.out.println();
-                    System.out.print(row[0]);
+                    System.out.print(row[0]); //padding added for column 0
+                    //displays the new row with empty space at null entries and the permission under
+                    //the objects previous permission
                     for (int k = 1; k < row.length; k++) {
                         if (row[k] == null){
                             System.out.print(addSpaces(10));
@@ -227,8 +228,6 @@ public class RBAC {
                 System.out.println();
             }
             for (int j = 0; j < cols; j++) {
-
-                //test = " " + test;
                 //top row resource objects
                 if(i == 0 && j > 0 && matrix[0][j].length() == 2){
                     System.out.print(matrix[i][j] + "        ");
@@ -266,24 +265,9 @@ public class RBAC {
                     }
 
                 }
-                //determine padding for cell with multiple entries and add lines
-                /*else if (matrix[i][j] != null && matrix[i][j].contains("\t")){
-                    permissions = matrix[i][j].split("\t");
-                    size = permissions[0].length();
-                    size = 10 - size;
-                    for (int k = 0; k < size; k++) {
-                        padding = " " + padding;
-                    }
-                    System.out.print(matrix[i][j] + padding);
-                    for (int k = 1; k < permissions.length; k++) {
-                        System.out.println( "  " + addSpaces(10*j) + permissions[k]);
-                    }
-
-                } */
                 //Spaces everything else in the table
                 else System.out.print(matrix[i][j] + "      ");
             }
-
             System.out.println();
         }
         System.out.println("\n");
