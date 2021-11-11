@@ -7,10 +7,14 @@ public class RBAC {
     public static ArrayList<String> asc = new ArrayList<String>(); //ascendants
     public static ArrayList<String> des = new ArrayList<String>(); //descendents
     public static ArrayList<String> roles = new ArrayList<String>(); //descendents
+    public static int cols;
+    public static int rows;
+    public static int maxColWidth = 0;
 
     public static void main(String[] args) throws IOException {
         ArrayList<String> temp = new ArrayList<String>();
         ArrayList<String> sortedDes = new ArrayList<String>();
+        String[][] ROM;
 
         confirm_LRH();
         //putting des into a hashset removes duplicates
@@ -33,8 +37,8 @@ public class RBAC {
         rmDupes.addAll(asc);
         roles.addAll(rmDupes);
         roles = roleSort(roles);
-        roleObjectMatrix();
-
+        ROM = roleObjectMatrix();
+        addPermissions(ROM);
 
     }
 
@@ -80,7 +84,7 @@ public class RBAC {
 
     }
 
-    public static void roleObjectMatrix() throws IOException {
+    public static String[][] roleObjectMatrix() throws IOException {
         ArrayList<String> resObj = new ArrayList<String>();
         HashSet duplicates = new HashSet();
         Scanner advance = new Scanner(System.in);
@@ -111,8 +115,8 @@ public class RBAC {
         }
 
         resObj.addAll(0, roles);
-        int rows = roles.size() + 1;
-        int cols = resObj.size() + 1;
+        rows = roles.size() + 1;
+        cols = resObj.size() + 1;
         String[][] ROM = new String[rows][cols];
         for (int i = 0; i < rows; i++) {
             if (i >= 1){
@@ -122,7 +126,7 @@ public class RBAC {
                 ROM[0][0] = "  ";
                 for (int j = 0; j < cols; j++) {
                     if (j >= 1){
-                        ROM[0][j] = "  " + resObj.get(j-1);
+                        ROM[0][j]= resObj.get(j-1);
                     }
                 }
             }
@@ -130,7 +134,40 @@ public class RBAC {
         }
         System.out.println("\n");
         printMatrix(ROM);
+        return ROM;
+    }
 
+    public static void addPermissions(String[][] ROM) throws IOException {
+        String divide;
+        String role;
+        String object;
+        String permission;
+        int rowIndex = 0;
+        int colIndex = 0;
+
+        input = new BufferedReader(new FileReader("permissionsToRoles.txt"));
+        while((divide = input.readLine()) != null){
+            role = (divide.split("\t")[0]);
+            permission = (divide.split("\t")[1]);
+            object = (divide.split("\t")[2]);
+            for (int i = 0; i < rows; i++) {
+                if (role.equals(ROM[i][0])){
+                    rowIndex = i;
+                }
+            }
+            for (int j = 0; j < cols; j++) {
+                if (object.equals(ROM[0][j])){
+                    colIndex = j;
+                }
+            }
+            ROM[rowIndex][colIndex] = permission + "\tread" + "\twrite";
+            if(permission.length() > maxColWidth){
+                maxColWidth = permission.length();
+            }
+        }
+        input.close();
+
+        printMatrix(ROM);
 
     }
 
@@ -149,8 +186,71 @@ public class RBAC {
 
     public static void printMatrix(String matrix[][])
     {
+        int size;
+        String padding = "";
+        String divide;
+        String[] permissions;
         // Loop through all rows
-        for (String[] row : matrix)
-            System.out.println(Arrays.toString(row));
+        matrix[0][0] = "  ";
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                //test = " " + test;
+                //top row resource objects
+                if(i == 0 && j > 0 && matrix[0][j].length() == 2){
+                    System.out.print(matrix[i][j] + "        ");
+                }
+                //top row resource objects if the object has char length 3
+                else if(i == 0 && j > 0 && matrix[0][j].length() == 3){
+                    System.out.print(matrix[i][j] + "       ");
+                }
+                //1st column roles 1-9
+                else if (i < 10 && j == 0){
+                    System.out.print(matrix[i][j] + "   ");
+                }
+                //1st column roles >= 10
+                else if (j == 0){
+                    System.out.print(matrix[i][0] + "  ");
+                }
+                //Determine padding for a cell that is not null
+                else if (matrix[i][j] != null && !matrix[i][j].contains("\t")){
+                    size = matrix[i][j].length();
+                    size = 10 - size;
+                    System.out.print(matrix[i][j] + addSpaces(size));
+                }
+                //determine padding for cell with multiple entries and add lines
+                /*else if (matrix[i][j] != null && matrix[i][j].contains("\t")){
+                    permissions = matrix[i][j].split("\t");
+                    size = permissions[0].length();
+                    size = 10 - size;
+                    for (int k = 0; k < size; k++) {
+                        padding = " " + padding;
+                    }
+                    System.out.print(matrix[i][j] + padding);
+                    for (int k = 1; k < permissions.length; k++) {
+                        System.out.println( "  " + addSpaces(10*j) + permissions[k]);
+                    }
+
+                } */
+                //Spaces everything else in the table
+                else System.out.print(matrix[i][j] + "      ");
+                padding = "";
+            }
+
+            System.out.println();
+        }
+        /*for (String[] row : matrix)
+
+            System.out.println(Arrays.toString(row)); */
+        System.out.println("\n");
     }
+
+    public static String addSpaces(int num){
+        String padding = "";
+        for (int k = 0; k < num; k++) {
+            padding = " " + padding;
+        }
+        return padding;
+    }
+
+
 }
