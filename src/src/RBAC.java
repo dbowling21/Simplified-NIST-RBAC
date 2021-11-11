@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class RBAC {
@@ -160,7 +161,7 @@ public class RBAC {
                     colIndex = j;
                 }
             }
-            ROM[rowIndex][colIndex] = permission + "\tread" + "\twrite";
+            ROM[rowIndex][colIndex] = permission + "\twrite*" + "\tread";
             if(permission.length() > maxColWidth){
                 maxColWidth = permission.length();
             }
@@ -187,13 +188,46 @@ public class RBAC {
     public static void printMatrix(String matrix[][])
     {
         int size;
+        //int colIndex = 0;
         String padding = "";
         String divide;
-        String[] permissions;
-        // Loop through all rows
+        int mostRights = 0;
+        ArrayList<String> colRights = new ArrayList<>();
+        ArrayList<Integer> colIndex = new ArrayList<>();
+        List<ArrayList<String>> fullCols= new ArrayList<>();
+        String[] row = new String[cols];
+
         matrix[0][0] = "  ";
+        row[0] = addSpaces(5);
         for (int i = 0; i < rows; i++) {
+            if(!fullCols.isEmpty()){
+                for (int j = 1; j < mostRights; j++) {
+                    for (int k = 0; k < fullCols.size(); k++) {
+                        colRights = fullCols.get(k);
+                        if (colRights.get(j) != null){
+                            row[colIndex.get(k)] = colRights.get(j);
+                        }
+                    }
+                    if (j > 1) System.out.println();
+                    System.out.print(row[0]);
+                    for (int k = 1; k < row.length; k++) {
+                        if (row[k] == null){
+                            System.out.print(addSpaces(10));
+                        }
+                        else {
+                            size = (row[k].length());
+                            size = 10 - size;
+                            System.out.print(row[k] + addSpaces(size));
+                        }
+                    }
+                }
+                mostRights = 0;
+                colIndex.clear();
+                fullCols.clear();
+                System.out.println();
+            }
             for (int j = 0; j < cols; j++) {
+
                 //test = " " + test;
                 //top row resource objects
                 if(i == 0 && j > 0 && matrix[0][j].length() == 2){
@@ -212,10 +246,25 @@ public class RBAC {
                     System.out.print(matrix[i][0] + "  ");
                 }
                 //Determine padding for a cell that is not null
-                else if (matrix[i][j] != null && !matrix[i][j].contains("\t")){
-                    size = matrix[i][j].length();
-                    size = 10 - size;
-                    System.out.print(matrix[i][j] + addSpaces(size));
+                else if (matrix[i][j] != null){
+                    if (matrix[i][j].contains("\t")){
+                        colRights = new ArrayList<>();
+                        Collections.addAll(colRights, matrix[i][j].split("\t"));
+                        size = (colRights.get(0)).length();
+                        size = 10 - size;
+                        colIndex.add(j);
+                        if (mostRights < colRights.size()){
+                            mostRights = colRights.size();
+                        }
+                        System.out.print(colRights.get(0) + addSpaces(size));
+                        fullCols.add(colRights);
+                    }
+                    else{
+                        size = (matrix[i][j]).length();
+                        size = 10 - size;
+                        System.out.print(matrix[i][j] + addSpaces(size));
+                    }
+
                 }
                 //determine padding for cell with multiple entries and add lines
                 /*else if (matrix[i][j] != null && matrix[i][j].contains("\t")){
@@ -233,14 +282,10 @@ public class RBAC {
                 } */
                 //Spaces everything else in the table
                 else System.out.print(matrix[i][j] + "      ");
-                padding = "";
             }
 
             System.out.println();
         }
-        /*for (String[] row : matrix)
-
-            System.out.println(Arrays.toString(row)); */
         System.out.println("\n");
     }
 
