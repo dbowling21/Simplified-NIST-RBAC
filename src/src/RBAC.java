@@ -44,7 +44,6 @@ public class RBAC {
         addPermissionsFromFile("permissionsToRoles.txt");
         addSSDFromFile("roleSetsSSD.txt");
         addUserRolesFromFile("usersRoles.txt");
-        //input.close();
     }
 
     public static void confirm_LRH(String fileName) throws IOException {
@@ -182,17 +181,29 @@ public class RBAC {
             count = 0;
         }
 
+        String[] seperatedRoles;
         rows = users.size() + 1;
         cols = roles.size() + 1;
         URM = new String[rows][cols];
         for (int i = 0; i < rows; i++) {
-            if ( i+1 < rows){
+            /*if ( i+1 < rows){
                 Arrays.fill(URM[i+1], "");
+            } */
+            if (i >= 1){ //rows > 0
+                Arrays.fill(URM[i], ""); //fill the array with something other than null
+                URM[i][0] = users.get(i-1); //fill the first column with users
+                seperatedRoles = userRoles.get(i -1).split("\t");
+                //loop over the roles and the roles from userRoles anywhere theres
+                // a match add a "+" in the matrix at the current row and the col of that role
+                for (int j = 0; j < roles.size() ; j++) {
+                    for (int k = 1; k < seperatedRoles.length; k++) {
+                        if (roles.get(j).equals(seperatedRoles[k])){
+                            URM[i][j+1] = "+";
+                        }
+                    }
+                }
             }
-            if (i >= 1){
-                URM[i][0] = users.get(i-1);
-            }
-            else {
+            else { //fills the first row with the roles
                 URM[0][0] = "  ";
                 for (int j = 0; j < cols; j++) {
                     if (j >= 1){
@@ -205,58 +216,6 @@ public class RBAC {
         printMatrix(URM);
 
     }
-
-/*        ArrayList<String> users = new ArrayList<>();
-        String divide;
-        String user;
-        boolean valid;
-        int count = 0;
-        input = new BufferedReader(new FileReader(fileName));
-
-        while((divide = input.readLine()) != null){
-            user = divide.split("\t")[0];
-            if (users.contains(user)){
-                input.close();
-                System.out.println("User ~"+ user + "~ has duplicates," +
-                        " fix these instances in another\ncommand line " +
-                        "and press ENTER to read it again or alternatively restart the program");
-                System.in.read();
-               // users.clear();
-                addUserRolesFromFile(fileName);
-            }
-            valid = checkConstraint(divide.split("\t", 2)[1]);
-            if (!valid){
-                input.close();
-                System.out.println("Invalid line is found in " + fileName + " on line " + count
-                        + " fix these instances in another\ncommand line " +
-                        "and press ENTER to read it again or alternatively restart the program");
-                System.in.read();
-                addUserRolesFromFile(fileName);
-            }
-            users.add(user);
-            count++;
-        }
-
-        rows = users.size() + 1;
-        cols = roles.size() + 1;
-        URM = new String[rows][cols];
-        for (int i = 0; i < rows; i++) {
-            if (i >= 1){
-                URM[i][0] = users.get(i-1);
-            }
-            else {
-                URM[0][0] = "  ";
-                for (int j = 0; j < cols; j++) {
-                    if (j >= 1){
-                        URM[0][j]= roles.get(j-1);
-                    }
-                }
-            }
-        }
-        System.out.println("\n");
-        printMatrix(URM);
-        //input.close();
-    } */
 
     public static boolean checkConstraint(String roles){
         boolean valid = true;
