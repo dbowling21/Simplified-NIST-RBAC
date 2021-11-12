@@ -155,11 +155,12 @@ public class RBAC {
             //Prevents adding a permission if the object already has it but adds
             //the permission to any others the object already has
             addPermission(row, col, permission);
+            //gives this role "control" to itself
             col = colIndex(role);
             addPermission(row, col, "control");
         }
         input.close();
-
+        //gives all of a roles descendants its permissions
         for (int i = 1; i < rows; i++) {
             inherit(ROM[i][0]);
         }
@@ -188,11 +189,12 @@ public class RBAC {
         int index = 0;
         int prevRow;
         int row;
-        inherit.add(ascendantRole);
+        inherit.add(ascendantRole); //list to reference the roles descendants
         count++;
         if (count > 1){
             row = rowIndex(ascendantRole);
             prevRow = rowIndex(inherit.get(count-2));
+            //adds whatever permissions were in the previous row to the current row for each column
             for (int i = 0; i < cols; i++) {
                 if (ROM[prevRow][i] != null && ROM[prevRow][i].equals("control")){
                     addPermission(row, i, ROM[prevRow][i]+ "\town");
@@ -200,7 +202,7 @@ public class RBAC {
                 else addPermission(row, i, ROM[prevRow][i]);
             }
         }
-        if (!asc.contains(ascendantRole)){
+        if (!asc.contains(ascendantRole)){ //breaks the recursion and resets globals
             System.out.print(inherit.get(0) + "'s descendants: ");
             inherit.remove(0);
             System.out.println(inherit + " inherit its permissions " );
@@ -215,7 +217,6 @@ public class RBAC {
             }
         }
         inherit(des.get(index));
-
     }
 
     public static ArrayList<String> roleSort(ArrayList<String> roles){
