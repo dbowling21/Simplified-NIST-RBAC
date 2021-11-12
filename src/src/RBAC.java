@@ -9,6 +9,7 @@ public class RBAC {
     public static ArrayList<String> des = new ArrayList<String>(); //descendents
     public static ArrayList<String> roles = new ArrayList<String>(); //descendents
     public static ArrayList<String> inherit = new ArrayList<String>();
+    public static ArrayList<String> SSD;
     public static String[][] ROM;
     public static int cols;
     public static int rows;
@@ -41,6 +42,8 @@ public class RBAC {
         roleObjectMatrix();
         addPermissionsFromFile("permissionsToRoles.txt");
         addSSDFromFile("roleSetsSSD.txt");
+        addUserRolesFromFile("usersRoles.txt");
+        //input.close();
     }
 
     public static void confirm_LRH(String fileName) throws IOException {
@@ -135,8 +138,75 @@ public class RBAC {
         printMatrix(ROM);
     }
 
+    public static void addUserRolesFromFile(String fileName) throws IOException {
+        ArrayList<String> users = new ArrayList<>();
+        String divide;
+        String user;
+        boolean valid;
+        int count = 0;
+        input = new BufferedReader(new FileReader(fileName));
+
+        while((divide = input.readLine()) != null){
+            user = divide.split("\t")[0];
+            if (users.contains(user)){
+                input.close();
+                System.out.println("User ~"+ user + "~ has duplicates," +
+                        " fix these instances in another\ncommand line " +
+                        "and press ENTER to read it again or alternatively restart the program");
+                System.in.read();
+               // users.clear();
+                addUserRolesFromFile(fileName);
+            }
+            valid = checkConstraint(divide.split("\t", 2)[1]);
+            if (!valid){
+                input.close();
+                System.out.println("Invalid line is found in " + fileName + " on line " + count
+                        + " fix these instances in another\ncommand line " +
+                        "and press ENTER to read it again or alternatively restart the program");
+                System.in.read();
+                addUserRolesFromFile(fileName);
+            }
+            users.add(user);
+            count++;
+        }
+        //input.close();
+    }
+
+    public static boolean checkConstraint(String roles){
+        boolean valid = true;
+        String[] reqRoles;
+        reqRoles = roles.split("\t");
+        int constraint = 0;
+        int count = 0;
+        for (int i = 0; i < SSD.size() ; i++) {
+            constraint = Integer.parseInt(SSD.get(i).split("\t")[0]);
+            if (constraint == 2){
+                for (int j = 0; j < reqRoles.length; j++) {
+                    if (SSD.get(i).contains(reqRoles[j])){
+                        count ++;
+                    }
+                }
+                if (count > 1){
+                    valid = false;
+                }
+            }
+            else {
+                for (int j = 0; j < reqRoles.length; j++) {
+                    if (SSD.get(i).contains(reqRoles[j])){
+                        count ++;
+                    }
+                }
+                if (count >= constraint){
+                    valid = false;
+                }
+            }
+            count = 0;
+        }
+        return valid;
+    }
+
     public static void addSSDFromFile(String fileName) throws IOException {
-        ArrayList<String> SSD = new ArrayList<String>();
+        SSD = new ArrayList<String>();
         String divide;
 
         input = new BufferedReader(new FileReader(fileName));
@@ -149,7 +219,6 @@ public class RBAC {
                 System.out.println("Invalid line is found in roleSetsSSD.txt: line " + i
                         + " fix these instances in another\ncommand line " +
                         "and press ENTER to read it again or alternatively restart the program");
-               // advance.nextLine();
                 System.in.read();
                 addSSDFromFile(fileName);
             }
@@ -158,6 +227,7 @@ public class RBAC {
                         + ", set of roles = {" + SSD.get(i).split("\t", 2)[1] + "}");
             }
         }
+        System.out.println();
 
     }
 
@@ -258,7 +328,7 @@ public class RBAC {
         return roles;
     }
 
-    public static void printMatrix(String matrix[][]){
+    public static void printMatrix(String[][] matrix){
         List<ArrayList<String>> fullCols= new ArrayList<>();
         ArrayList<Integer> colIndex = new ArrayList<>();
         ArrayList<String> colRights;
