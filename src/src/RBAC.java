@@ -17,7 +17,7 @@ public class RBAC {
     public static void main(String[] args) throws IOException {
         ArrayList<String> temp = new ArrayList<String>();
         ArrayList<String> sortedDes = new ArrayList<String>();
-        confirm_LRH();
+        confirm_LRH("roleHierarchy.txt");
         //putting des into a hashset removes duplicates
         HashSet rmDupes = new HashSet();
         rmDupes.addAll(des);
@@ -39,17 +39,17 @@ public class RBAC {
         roles.addAll(rmDupes);
         roles = roleSort(roles);
         roleObjectMatrix();
-        addPermissionsFromFile();
+        addPermissionsFromFile("permissionsToRoles.txt");
+        addSSDFromFile("roleSetsSSD.txt");
     }
 
-    public static void confirm_LRH() throws IOException {
+    public static void confirm_LRH(String fileName) throws IOException {
         boolean invalid = false;
         ArrayList<String> duplicates = new ArrayList<String>();
-        Scanner advance = new Scanner(System.in);
         String divide;
         String compare;
 
-        input = new BufferedReader(new FileReader("roleHierarchy.txt"));
+        input = new BufferedReader(new FileReader(fileName));
 
         //split each line of the input file on tab to get asc and des
         while((divide = input.readLine()) != null){
@@ -75,11 +75,11 @@ public class RBAC {
                     "limited role hierarchy:\n" + duplicates +"\nThese ascendants have " +
                     "multiple descendants, fix these instances in another\ncommand line " +
                     "and press ENTER to read it again or alternatively restart the program");
-            advance.nextLine();
+            System.in.read();
             asc.clear();
             des.clear();
             duplicates.clear();
-            confirm_LRH();
+            confirm_LRH(fileName);
         }
 
     }
@@ -135,7 +135,33 @@ public class RBAC {
         printMatrix(ROM);
     }
 
-    public static void addPermissionsFromFile() throws IOException {
+    public static void addSSDFromFile(String fileName) throws IOException {
+        ArrayList<String> SSD = new ArrayList<String>();
+        String divide;
+
+        input = new BufferedReader(new FileReader(fileName));
+        while((divide = input.readLine()) != null){
+            SSD.add(divide);
+        }
+        input.close();
+        for (int i = 0; i < SSD.size(); i++) {
+            if ((Integer.parseInt(SSD.get(i).split("\t")[0]) <2 )){
+                System.out.println("Invalid line is found in roleSetsSSD.txt: line " + i
+                        + " fix these instances in another\ncommand line " +
+                        "and press ENTER to read it again or alternatively restart the program");
+               // advance.nextLine();
+                System.in.read();
+                addSSDFromFile(fileName);
+            }
+            else{
+                System.out.println("constraint " + i + ", n = " + SSD.get(i).split("\t")[0]
+                        + ", set of roles = {" + SSD.get(i).split("\t", 2)[1] + "}");
+            }
+        }
+
+    }
+
+    public static void addPermissionsFromFile(String fileName) throws IOException {
         String divide;
         String role;
         String object;
@@ -143,7 +169,7 @@ public class RBAC {
         int row;
         int col;
 
-        input = new BufferedReader(new FileReader("permissionsToRoles.txt"));
+        input = new BufferedReader(new FileReader(fileName));
         while((divide = input.readLine()) != null){
             //split the input file
             role = (divide.split("\t")[0]);
