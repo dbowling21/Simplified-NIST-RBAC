@@ -7,10 +7,11 @@ public class RBAC {
     public static BufferedReader input;
     public static ArrayList<String> asc = new ArrayList<String>(); //ascendants
     public static ArrayList<String> des = new ArrayList<String>(); //descendents
-    public static ArrayList<String> roles = new ArrayList<String>(); //descendents
+    public static ArrayList<String> roles = new ArrayList<String>();
     public static ArrayList<String> inherit = new ArrayList<String>();
     public static ArrayList<String> SSD;
     public static String[][] ROM;
+    public static String[][] URM;
     public static int cols;
     public static int rows;
     public static int count;
@@ -139,7 +140,73 @@ public class RBAC {
     }
 
     public static void addUserRolesFromFile(String fileName) throws IOException {
+        ArrayList<String> userRoles = new ArrayList<>();
         ArrayList<String> users = new ArrayList<>();
+        String divide;
+        String user;
+        boolean valid = true;
+        int count = 0;
+        input = new BufferedReader(new FileReader(fileName));
+        while((divide = input.readLine()) != null){
+            userRoles.add(divide);
+            users.add(divide.split("\t")[0]);
+        }
+        input.close();
+
+        for (int i = 0; i < userRoles.size(); i++) {
+            valid = checkConstraint(userRoles.get(i).split("\t", 2)[1]);
+            if (!valid){
+                System.out.println("Invalid line is found in " + fileName + " on line " + i
+                        + " fix these instances in another\ncommand line " +
+                        "and press ENTER to read it again or alternatively restart the program");
+                System.in.read();
+                addUserRolesFromFile(fileName);
+            }
+        }
+        for (int i = 0; i < userRoles.size(); i++) {
+            user = userRoles.get(i).split("\t")[0];
+            for (int j = 0; j < userRoles.size(); j++) {
+                if (userRoles.get(j).split("\t")[0].equals(user)){
+                    count ++;
+                }
+            }
+            if (count> 1){
+                System.out.println("User ~"+ user + "~ has duplicates," +
+                        " fix these instances in another\ncommand line " +
+                        "and press ENTER to read it again or alternatively restart the program");
+                System.in.read();
+                count = 0;
+                userRoles.clear();
+                addUserRolesFromFile(fileName);
+            }
+            count = 0;
+        }
+
+        rows = users.size() + 1;
+        cols = roles.size() + 1;
+        URM = new String[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            if ( i+1 < rows){
+                Arrays.fill(URM[i+1], "");
+            }
+            if (i >= 1){
+                URM[i][0] = users.get(i-1);
+            }
+            else {
+                URM[0][0] = "  ";
+                for (int j = 0; j < cols; j++) {
+                    if (j >= 1){
+                        URM[0][j]= roles.get(j-1);
+                    }
+                }
+            }
+        }
+        System.out.println("\n");
+        printMatrix(URM);
+
+    }
+
+/*        ArrayList<String> users = new ArrayList<>();
         String divide;
         String user;
         boolean valid;
@@ -169,8 +236,27 @@ public class RBAC {
             users.add(user);
             count++;
         }
+
+        rows = users.size() + 1;
+        cols = roles.size() + 1;
+        URM = new String[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            if (i >= 1){
+                URM[i][0] = users.get(i-1);
+            }
+            else {
+                URM[0][0] = "  ";
+                for (int j = 0; j < cols; j++) {
+                    if (j >= 1){
+                        URM[0][j]= roles.get(j-1);
+                    }
+                }
+            }
+        }
+        System.out.println("\n");
+        printMatrix(URM);
         //input.close();
-    }
+    } */
 
     public static boolean checkConstraint(String roles){
         boolean valid = true;
