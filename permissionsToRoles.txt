@@ -1,0 +1,10 @@
+R6	write*	F3
+R6	write*	F3
+R6	test	F3
+R2	seek	D1
+R6	read	F3
+R6	read	F1
+R6	write*	F1
+R2	seek	D1
+R2	write*	D1
+R1	read	R1

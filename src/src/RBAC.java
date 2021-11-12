@@ -143,7 +143,7 @@ public class RBAC {
         int row;
         int col;
 
-        input = new BufferedReader(new FileReader("inherit.txt"));
+        input = new BufferedReader(new FileReader("permissionsToRoles.txt"));
         while((divide = input.readLine()) != null){
             //split the input file
             role = (divide.split("\t")[0]);
