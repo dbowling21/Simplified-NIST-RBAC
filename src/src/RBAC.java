@@ -8,9 +8,11 @@ public class RBAC {
     public static ArrayList<String> asc = new ArrayList<String>(); //ascendants
     public static ArrayList<String> des = new ArrayList<String>(); //descendents
     public static ArrayList<String> roles = new ArrayList<String>(); //descendents
+    public static ArrayList<String> inherit = new ArrayList<String>();
     public static String[][] ROM;
     public static int cols;
     public static int rows;
+    public static int count;
 
     public static void main(String[] args) throws IOException {
         ArrayList<String> temp = new ArrayList<String>();
@@ -37,8 +39,7 @@ public class RBAC {
         roles.addAll(rmDupes);
         roles = roleSort(roles);
         roleObjectMatrix();
-        addPermissions();
-
+        addPermissionsFromFile();
     }
 
     public static void confirm_LRH() throws IOException {
@@ -134,7 +135,7 @@ public class RBAC {
         printMatrix(ROM);
     }
 
-    public static void addPermissions() throws IOException {
+    public static void addPermissionsFromFile() throws IOException {
         String divide;
         String role;
         String object;
@@ -142,7 +143,7 @@ public class RBAC {
         int row;
         int col;
 
-        input = new BufferedReader(new FileReader("permissionsToRoles.txt"));
+        input = new BufferedReader(new FileReader("inherit.txt"));
         while((divide = input.readLine()) != null){
             //split the input file
             role = (divide.split("\t")[0]);
@@ -153,51 +154,66 @@ public class RBAC {
             col = colIndex(object);
             //Prevents adding a permission if the object already has it but adds
             //the permission to any others the object already has
-
-            if (ROM[row][col] != null && !ROM[row][col].equals(permission)){
-                ROM[row][col] = ROM[row][col] + "\t" + permission;
-            }
-            else if(ROM[row][col] == null ){
-                ROM[row][col] = permission;
-            }
+            addPermission(row, col, permission);
+            col = colIndex(role);
+            addPermission(row, col, "control");
         }
         input.close();
+
+        for (int i = 1; i < rows; i++) {
+            inherit(ROM[i][0]);
+        }
         printMatrix(ROM);
 
     }
 
-    public static int rowIndex(String title){
-        int rowIndex = 0;
-        for (int i = 0; i < rows; i++) {
-            if (title.equals(ROM[i][0])){
-                rowIndex = i;
+    public static void addPermission(int row, int col, String permission){
+        for (int i = 0; i < asc.size(); i++) { //prevents adding a role to a role from inherit
+            if (ROM[row][col] == null){
+                break;
             }
+            //if the ROM cell is an asc or des then add nothing and return
+            else if (ROM[row][col] != null && (ROM[row][col].equals(asc.get(i))
+            || ROM[row][col].equals(des.get(i)))) return;
+        }                                                            //&& permission != null may give issue later?
+        if (ROM[row][col] != null && !ROM[row][col].equals(permission) && permission != null){
+            ROM[row][col] = ROM[row][col] + "\t" + permission;
         }
-        return rowIndex;
-    }
-    public static int colIndex(String title){
-        int colIndex = 0;
-        for (int i = 0; i < cols; i++) {
-            if (title.equals(ROM[0][i])){
-                colIndex = i;
-            }
+        else if(ROM[row][col] == null ){
+            ROM[row][col] = permission;
         }
-        return colIndex;
     }
 
     public static void inherit(String ascendantRole){
         int index = 0;
+        int prevRow;
+        int row;
+        inherit.add(ascendantRole);
+        count++;
+        if (count > 1){
+            row = rowIndex(ascendantRole);
+            prevRow = rowIndex(inherit.get(count-2));
+            for (int i = 0; i < cols; i++) {
+                if (ROM[prevRow][i] != null && ROM[prevRow][i].equals("control")){
+                    addPermission(row, i, ROM[prevRow][i]+ "\town");
+                }
+                else addPermission(row, i, ROM[prevRow][i]);
+            }
+        }
         if (!asc.contains(ascendantRole)){
-            System.out.println("~~~~~~~ NOT AN ASCENDANT ~~~~~~~");
+            System.out.print(inherit.get(0) + "'s descendants: ");
+            inherit.remove(0);
+            System.out.println(inherit + " inherit its permissions " );
+            inherit.clear();
+            count = 0;
             return;
         }
+        //recursive call to travel up tree
         for (int i = 0; i < asc.size(); i++) {
             if (asc.get(i).equals(ascendantRole)){
                 index = i;
             }
         }
-
-
         inherit(des.get(index));
 
     }
@@ -215,8 +231,7 @@ public class RBAC {
         return roles;
     }
 
-    public static void printMatrix(String matrix[][])
-    {
+    public static void printMatrix(String matrix[][]){
         List<ArrayList<String>> fullCols= new ArrayList<>();
         ArrayList<Integer> colIndex = new ArrayList<>();
         ArrayList<String> colRights;
@@ -309,6 +324,26 @@ public class RBAC {
             System.out.println();
         }
         System.out.println("\n");
+    }
+
+    public static int rowIndex(String title){
+        int rowIndex = 0;
+        for (int i = 0; i < rows; i++) {
+            if (title.equals(ROM[i][0])){
+                rowIndex = i;
+            }
+        }
+        return rowIndex;
+    }
+
+    public static int colIndex(String title){
+        int colIndex = 0;
+        for (int i = 0; i < cols; i++) {
+            if (title.equals(ROM[0][i])){
+                colIndex = i;
+            }
+        }
+        return colIndex;
     }
 
     public static String addSpaces(int num){
