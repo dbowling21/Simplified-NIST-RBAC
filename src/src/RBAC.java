@@ -9,9 +9,13 @@ public class RBAC {
     public static ArrayList<String> des = new ArrayList<String>(); //descendents
     public static ArrayList<String> roles = new ArrayList<String>();
     public static ArrayList<String> inherit = new ArrayList<String>();
+    public static Scanner userInput = new Scanner(System.in);
     public static ArrayList<String> SSD;
     public static String[][] ROM;
     public static String[][] URM;
+    public static String userQuery;
+    public static String objectQuery;
+    public static String permissionQuery;
     public static int cols;
     public static int rows;
     public static int count;
@@ -44,8 +48,66 @@ public class RBAC {
         addPermissionsFromFile("permissionsToRoles.txt");
         addSSDFromFile("roleSetsSSD.txt");
         addUserRolesFromFile("usersRoles.txt");
+        getUser();
+        checkObject();
+        checkPermission();
+        
     }
-
+    
+    public static void checkPermission(){
+        boolean contains = false;
+        System.out.print("Please enter the access right in your query (hit enter if it’s for any): ");
+        permissionQuery = userInput.nextLine();
+        if (objectQuery.equals("")){
+            return;
+        }
+        for(int i = 1; i < ROM[0].length; i++) {
+            if (ROM[0][i].equals(objectQuery) ){
+                contains = true;
+                break;
+            }
+        }
+        if (!contains){
+            System.out.println("Invalid object, try again");
+            checkObject();
+        }
+    }
+    
+    public static void checkObject(){
+        boolean contains = false;
+        System.out.print("Please enter the object in your query (hit enter if it’s for any): ");
+        objectQuery = userInput.nextLine();
+        if (objectQuery.equals("")){
+            return;
+        }
+        for(int i = 1; i < ROM[0].length; i++) {
+            if (ROM[0][i].equals(objectQuery) ){
+                contains = true;
+                break;
+            }
+        }
+        if (!contains){
+            System.out.println("Invalid object, try again");
+            checkObject();
+        }
+    }
+    
+    public static void getUser(){
+        boolean contains = false;
+        System.out.print("Please enter the user in your query: ");
+        userQuery = userInput.nextLine();
+        for(int i = 0; i < URM.length; i++) {
+            if (URM[i][0].equals(userQuery) ){
+                contains = true;
+                break;
+            }
+        }
+        if (!contains){
+            System.out.println("Invalid user, try again");
+            getUser();
+        }
+    }
+    
     public static void confirm_LRH(String fileName) throws IOException {
         boolean invalid = false;
         ArrayList<String> duplicates = new ArrayList<String>();
