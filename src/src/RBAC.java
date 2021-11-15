@@ -23,6 +23,12 @@ public class RBAC {
     public static void main(String[] args) throws IOException {
         ArrayList<String> temp = new ArrayList<String>();
         ArrayList<String> sortedDes = new ArrayList<String>();
+        ArrayList<String> userRoles = new ArrayList<String>();
+        boolean granted;
+        boolean loop = true;
+        int rowIndex;
+        int colIndex;
+
         confirm_LRH("roleHierarchy.txt");
         //putting des into a hashset removes duplicates
         HashSet rmDupes = new HashSet();
@@ -48,29 +54,84 @@ public class RBAC {
         addPermissionsFromFile("permissionsToRoles.txt");
         addSSDFromFile("roleSetsSSD.txt");
         addUserRolesFromFile("usersRoles.txt");
-        getUser();
-        checkObject();
-        checkPermission();
-        
+
+        while (loop){//gets user queries until user chooses to stop
+            checkUser();
+            userRoles = getUserRoles(userQuery);
+            checkObject();
+            granted = checkPermission(userRoles);
+
+            //if user but no object or access right is input display all the
+            // objects and access rights this user has access to
+            if (objectQuery == null && permissionQuery == null){
+                for (int i = 0; i < userRoles.size(); i++) {
+                    rowIndex = newRowIndex(userRoles.get(i), ROM);
+                    System.out.println("Access rights for role " + userRoles.get(i));
+                    for (int j = 1; j < ROM[0].length; j++) {
+                        if (ROM[rowIndex][j] != null) {
+                            System.out.println(ROM[0][j] + "\t" + ROM[rowIndex][j]);
+                        }
+                    }
+                    System.out.println();
+                }
+            }
+            //if user and object but no access right is input display the access rights for the object
+            else if (objectQuery != null && permissionQuery == null){
+                for (int i = 0; i < userRoles.size(); i++) {
+                    rowIndex = newRowIndex(userRoles.get(i), ROM);
+                    colIndex = newColIndex(objectQuery, ROM);
+                    if (ROM[rowIndex][colIndex] != null) {
+                        System.out.println(userQuery + "'s access rights for " + userRoles.get(i)
+                                + " object " + objectQuery + " are: " + ROM[rowIndex][colIndex] );
+                    }
+                    else System.out.println("No access rights found for this user");
+                }
+                System.out.println();
+            }
+            else { //if user object and access right are input
+                if (granted) System.out.println("authorized");
+                else System.out.println("rejected\n");
+            }
+            System.out.print("Would you like to continue for the next query?: ");
+            if (!userInput.nextLine().equals("yes")) loop = false;
+        }
+
     }
-    
-    public static void checkPermission(){
+
+    public static ArrayList<String> getUserRoles(String user){
+        ArrayList<String> roles = new ArrayList<>();
+        int rowIndex;
+        rowIndex = newRowIndex(user, URM);
+        for (int i = 0; i < URM[rowIndex].length; i++) {
+            if ( URM[rowIndex][i].contains("+")){
+                roles.add(URM[0][i]);
+            }
+        }
+        return roles;
+    }
+
+    public static boolean checkPermission(ArrayList<String> roles){
         boolean contains = false;
+        int rowIndex;
+        int colIndex;
+
         System.out.print("Please enter the access right in your query (hit enter if it’s for any): ");
         permissionQuery = userInput.nextLine();
-        if (objectQuery.equals("")){
-            return;
+        System.out.println();
+        if (permissionQuery.equals("")){
+            permissionQuery = null;
+            return false;
         }
-        for(int i = 1; i < ROM[0].length; i++) {
-            if (ROM[0][i].equals(objectQuery) ){
+        colIndex = newColIndex(objectQuery, ROM);
+        for (int i = 0; i < roles.size(); i++) {
+            rowIndex = rowIndex(roles.get(i));
+            if (ROM[rowIndex][colIndex] != null && ROM[rowIndex][colIndex].contains(permissionQuery)){
                 contains = true;
                 break;
             }
+            else contains = false;
         }
-        if (!contains){
-            System.out.println("Invalid object, try again");
-            checkObject();
-        }
+        return contains;
     }
     
     public static void checkObject(){
@@ -78,6 +139,7 @@ public class RBAC {
         System.out.print("Please enter the object in your query (hit enter if it’s for any): ");
         objectQuery = userInput.nextLine();
         if (objectQuery.equals("")){
+            objectQuery = null;
             return;
         }
         for(int i = 1; i < ROM[0].length; i++) {
@@ -92,7 +154,7 @@ public class RBAC {
         }
     }
     
-    public static void getUser(){
+    public static void checkUser(){
         boolean contains = false;
         System.out.print("Please enter the user in your query: ");
         userQuery = userInput.nextLine();
@@ -104,7 +166,7 @@ public class RBAC {
         }
         if (!contains){
             System.out.println("Invalid user, try again");
-            getUser();
+            checkUser();
         }
     }
     
@@ -530,6 +592,26 @@ public class RBAC {
         System.out.println("\n");
     }
 
+    public static int newRowIndex(String title, String[][] matrix){
+        int rowIndex = 0;
+        for (int i = 0; i < matrix.length; i++) {
+            if (title.equals(matrix[i][0])){
+                rowIndex = i;
+            }
+        }
+        return rowIndex;
+    }
+
+    public static int newColIndex(String title, String[][] matrix){
+        int colIndex = 0;
+        for (int i = 0; i < matrix[0].length; i++) {
+            if (title.equals(matrix[0][i])){
+                colIndex = i;
+            }
+        }
+        return colIndex;
+    }
+
     public static int rowIndex(String title){
         int rowIndex = 0;
         for (int i = 0; i < rows; i++) {
@@ -539,6 +621,7 @@ public class RBAC {
         }
         return rowIndex;
     }
+
 
     public static int colIndex(String title){
         int colIndex = 0;
