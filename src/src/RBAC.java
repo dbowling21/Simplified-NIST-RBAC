@@ -65,7 +65,7 @@ public class RBAC {
             // objects and access rights this user has access to
             if (objectQuery == null && permissionQuery == null){
                 for (int i = 0; i < userRoles.size(); i++) {
-                    rowIndex = newRowIndex(userRoles.get(i), ROM);
+                    rowIndex = rowIndex(userRoles.get(i), ROM);
                     System.out.println("Access rights for role " + userRoles.get(i));
                     for (int j = 1; j < ROM[0].length; j++) {
                         if (ROM[rowIndex][j] != null) {
@@ -78,8 +78,8 @@ public class RBAC {
             //if user and object but no access right is input display the access rights for the object
             else if (objectQuery != null && permissionQuery == null){
                 for (int i = 0; i < userRoles.size(); i++) {
-                    rowIndex = newRowIndex(userRoles.get(i), ROM);
-                    colIndex = newColIndex(objectQuery, ROM);
+                    rowIndex = rowIndex(userRoles.get(i), ROM);
+                    colIndex = colIndex(objectQuery, ROM);
                     if (ROM[rowIndex][colIndex] != null) {
                         System.out.println(userQuery + "'s access rights for " + userRoles.get(i)
                                 + " object " + objectQuery + " are: " + ROM[rowIndex][colIndex] );
@@ -87,6 +87,9 @@ public class RBAC {
                     else System.out.println("No access rights found for this user");
                 }
                 System.out.println();
+            }
+            else if (objectQuery == null){
+                System.out.println("~Invalid~ No object was specified");
             }
             else { //if user object and access right are input
                 if (granted) System.out.println("authorized");
@@ -101,7 +104,7 @@ public class RBAC {
     public static ArrayList<String> getUserRoles(String user){
         ArrayList<String> roles = new ArrayList<>();
         int rowIndex;
-        rowIndex = newRowIndex(user, URM);
+        rowIndex = rowIndex(user, URM);
         for (int i = 0; i < URM[rowIndex].length; i++) {
             if ( URM[rowIndex][i].contains("+")){
                 roles.add(URM[0][i]);
@@ -122,9 +125,12 @@ public class RBAC {
             permissionQuery = null;
             return false;
         }
-        colIndex = newColIndex(objectQuery, ROM);
+        else if ( objectQuery == null){
+            return false;
+        }
+        colIndex = colIndex(objectQuery, ROM);
         for (int i = 0; i < roles.size(); i++) {
-            rowIndex = rowIndex(roles.get(i));
+            rowIndex = rowIndex(roles.get(i), ROM);
             if (ROM[rowIndex][colIndex] != null && ROM[rowIndex][colIndex].contains(permissionQuery)){
                 contains = true;
                 break;
@@ -415,13 +421,13 @@ public class RBAC {
             permission = (divide.split("\t")[1]);
             object = (divide.split("\t")[2]);
             //find row and col index of the permission
-            row = rowIndex(role);
-            col = colIndex(object);
+            row = rowIndex(role, ROM);
+            col = colIndex(object, ROM);
             //Prevents adding a permission if the object already has it but adds
             //the permission to any others the object already has
             addPermission(row, col, permission);
             //gives this role "control" to itself
-            col = colIndex(role);
+            col = colIndex(role, ROM);
             addPermission(row, col, "control");
         }
         input.close();
@@ -457,8 +463,8 @@ public class RBAC {
         inherit.add(ascendantRole); //list to reference the roles descendants
         count++;
         if (count > 1){
-            row = rowIndex(ascendantRole);
-            prevRow = rowIndex(inherit.get(count-2));
+            row = rowIndex(ascendantRole, ROM);
+            prevRow = rowIndex(inherit.get(count-2), ROM);
             //adds whatever permissions were in the previous row to the current row for each column
             for (int i = 0; i < cols; i++) {
                 if (ROM[prevRow][i] != null && ROM[prevRow][i].equals("control")){
@@ -592,7 +598,7 @@ public class RBAC {
         System.out.println("\n");
     }
 
-    public static int newRowIndex(String title, String[][] matrix){
+    public static int rowIndex(String title, String[][] matrix){
         int rowIndex = 0;
         for (int i = 0; i < matrix.length; i++) {
             if (title.equals(matrix[i][0])){
@@ -602,7 +608,7 @@ public class RBAC {
         return rowIndex;
     }
 
-    public static int newColIndex(String title, String[][] matrix){
+    public static int colIndex(String title, String[][] matrix){
         int colIndex = 0;
         for (int i = 0; i < matrix[0].length; i++) {
             if (title.equals(matrix[0][i])){
@@ -612,7 +618,7 @@ public class RBAC {
         return colIndex;
     }
 
-    public static int rowIndex(String title){
+   /* public static int rowIndex(String title){
         int rowIndex = 0;
         for (int i = 0; i < rows; i++) {
             if (title.equals(ROM[i][0])){
@@ -620,10 +626,9 @@ public class RBAC {
             }
         }
         return rowIndex;
-    }
+    } */
 
-
-    public static int colIndex(String title){
+    /*public static int colIndex(String title){
         int colIndex = 0;
         for (int i = 0; i < cols; i++) {
             if (title.equals(ROM[0][i])){
@@ -631,7 +636,7 @@ public class RBAC {
             }
         }
         return colIndex;
-    }
+    } */
 
     public static String addSpaces(int num){
         String padding = "";
