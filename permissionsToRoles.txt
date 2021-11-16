@@ -8,3 +8,4 @@ R6	write*	F1
 R2	seek	D1
 R2	write*	D1
 R1	read	R1
+R10	execute	F2

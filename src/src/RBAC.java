@@ -51,6 +51,7 @@ public class RBAC {
         roles.addAll(rmDupes);
         roles = roleSort(roles);
         roleObjectMatrix();
+        //printMatrix(ROM);
         addPermissionsFromFile("permissionsToRoles.txt");
         addSSDFromFile("roleSetsSSD.txt");
         addUserRolesFromFile("usersRoles.txt");
@@ -220,13 +221,14 @@ public class RBAC {
     public static void roleObjectMatrix() throws IOException {
         ArrayList<String> resObj = new ArrayList<String>();
         HashSet duplicates = new HashSet();
-        Scanner advance = new Scanner(System.in);
+        //Scanner advance = new Scanner(System.in);
         String obj;
         boolean duplicate = false;
 
         input = new BufferedReader(new FileReader("resourceObjects.txt"));
 
         obj = input.readLine();
+        input.close();
         resObj.addAll(Arrays.asList(obj.split("\t")));
         for (int i = 0; i < resObj.size(); i++) {
             obj = resObj.get(i);
@@ -238,13 +240,15 @@ public class RBAC {
             }
             resObj.set(i, obj); //restores the res array to its original form
         }
-        input.close();
         if (duplicate){
             System.out.println("\nRemove these duplicates in another command line: "
                     + duplicates + "\nPress ENTER to read it again or restart the program");
-            advance.nextLine();
+            //advance.nextLine();
+            System.in.read();
             resObj.clear();
+            duplicate = false;
             roleObjectMatrix();
+            return;
         }
 
         resObj.addAll(0, roles);
@@ -290,6 +294,7 @@ public class RBAC {
                         "and press ENTER to read it again or alternatively restart the program");
                 System.in.read();
                 addUserRolesFromFile(fileName);
+                return;
             }
         }
         for (int i = 0; i < userRoles.size(); i++) {
@@ -307,6 +312,7 @@ public class RBAC {
                 count = 0;
                 userRoles.clear();
                 addUserRolesFromFile(fileName);
+                return;
             }
             count = 0;
         }
