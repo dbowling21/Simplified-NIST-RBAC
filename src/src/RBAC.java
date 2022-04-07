@@ -7,7 +7,7 @@ public class RBAC {
     public static BufferedReader input;
     public static ArrayList<String> asc = new ArrayList<String>(); //ascendants
     public static ArrayList<String> des = new ArrayList<String>(); //descendents
-    public static ArrayList<String> roles = new ArrayList<String>(); //descendents
+    public static ArrayList<String> roles = new ArrayList<String>();
     public static ArrayList<String> inherit = new ArrayList<String>();
     public static String[][] ROM;
     public static int cols;
